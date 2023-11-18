@@ -1,0 +1,32 @@
+define
+
+# Also need a generic "molecule class" type
+# I'm finding that a lot of these pathways given in FA don't specify exact reactants or exact products
+# and will instead give molecule classes
+# Example: in the arachidonic acid pathway, COXes (enzyme class) convert arachidonic acid into cyclic endoperoxides
+#    Some ambiguity here: Cyclic endoperoxides might be a class of intermediates, or class of final products
+
+becomes sub relation,
+    relates reactant,
+    relates product,
+    plays catalyzes:reaction;
+
+catalyzes sub relation,
+    relates reaction,
+    relates catalyst,
+    plays inhibits:catalysis;
+
+inhibits sub relation,
+    relates inhibitor,
+    relates catalysis;
+
+molecule sub entity,
+    plays becomes:reactant,
+    plays becomes:product,
+    plays inhibits:inhibitor,
+    owns name;
+
+enzyme sub molecule,
+    plays catalyzes:catalyst;
+
+name sub attribute, value string;

@@ -1,0 +1,10 @@
+define
+
+causes sub relation,
+    relates cause,
+    relates effect;
+
+# I'm a little stumped here, not sure what else should go into this.
+# Candidate relationships: actions (modifies, increases, decreases, changes)
+
+# Perhaps this should be driven by data

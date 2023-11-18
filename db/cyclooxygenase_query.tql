@@ -1,0 +1,4 @@
+match $m isa molecule, has name $n;
+    $r isa becomes;
+    $c isa catalyzes;
+    $i isa inhibits;
