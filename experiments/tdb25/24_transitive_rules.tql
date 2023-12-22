@@ -1,0 +1,30 @@
+# Run this on an empty database so it doesn't run away with computation.
+
+define
+
+name sub attribute, value string;
+
+group-membership sub relation,
+    relates group,
+    relates member;
+
+user sub entity,
+    owns name,
+    plays group-membership:member;
+
+user-group sub entity,
+    owns name,
+    plays group-membership:group,
+    plays group-membership:member;
+
+rule transitive-group-membership: when {
+  (group: $g1, member: $g2) isa group-membership;
+  (group: $g2, member: $u) isa group-membership;
+} then {
+  (group: $g1, member: $u) isa group-membership;
+};
+
+# Basically, if A c= B c= C, then A c= C implemented as an inference rule.
+# This will come in handy for categories/types/etc.
+# Transitivity rules work for any number of steps/nested levels.
+

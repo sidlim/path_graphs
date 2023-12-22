@@ -1,0 +1,21 @@
+define
+
+name sub attribute, abstract, value string; # Only abstract attributes can have subtypes, so this has to be modified to become abstract
+full-name sub name;
+path sub attribute, value string;
+
+person sub entity, abstract, # Abstract attributes have to be owned by abstract types, so this needs to be changed to abstract if it is going to have a name attribute
+    owns name;
+user sub person,
+    owns full-name as name, # User type overrides the person type's name attribute
+    plays permission:subject;
+file sub entity,
+    owns path,
+    plays permission:object;
+
+permission sub relation,
+    relates subject,
+    relates object;
+
+user-permission sub permission,
+    relates user as subject;

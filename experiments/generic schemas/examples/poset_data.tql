@@ -1,0 +1,26 @@
+insert
+
+    # Start by inputting the types as entities themselves:
+    $t isa Type, has name "Thing";
+    $e isa Type, has name "Entity";
+    $r isa Type, has name "Relation";
+    $a isa Type, has name "Attribute";
+    $T isa Type, has name "Type";
+    $i isa Type, has name "integer";
+    $n isa Type, has name "name";
+    $o isa Type, has name "order";
+    $d isa Type, has name "divides";
+    $l isa Type, has name "lte";
+    $s isa Type, has name "subtype";
+    
+    # Now let's represent the subtype information:
+    (subordinate: $T, superior: $e) isa subtype;
+    (subordinate: $e, superior: $t) isa subtype;
+    (subordinate: $r, superior: $t) isa subtype;
+    (subordinate: $a, superior: $t) isa subtype;
+    (subordinate: $i, superior: $a) isa subtype;
+    (subordinate: $n, superior: $a) isa subtype;
+    (subordinate: $d, superior: $o) isa subtype;
+    (subordinate: $l, superior: $o) isa subtype;
+    (subordinate: $s, superior: $o) isa subtype;
+    (subordinate: $o, superior: $r) isa subtype;

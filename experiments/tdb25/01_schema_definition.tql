@@ -1,0 +1,33 @@
+define
+
+# Query 1: Schema definition. Recreating https://typedb.com/docs/home/_images/typedb-in-25-queries/era-schema.png
+# but on my own, so there may be some errors.
+
+person sub entity,
+    owns name;
+
+user sub person,
+    plays permission:subject,
+    owns username @key,
+    owns email @unique;
+
+file sub entity,
+    plays permission:object,
+    owns path @key,
+    owns size-kb;
+
+permission sub relation,
+    relates subject,
+    relates object,
+    owns updated;
+
+id sub attribute, abstract, value string;
+
+name sub id;
+email sub id;
+username sub id;
+path sub id;
+
+updated sub attribute, value datetime;
+
+size-kb sub attribute, value long;

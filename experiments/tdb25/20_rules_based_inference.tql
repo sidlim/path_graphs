@@ -1,0 +1,8 @@
+define
+
+# "infer" that every person can also be called "Dude":
+rule every-person-is-a-dude: when {
+    $p isa person;
+} then {
+    $p has name "Dude";
+};

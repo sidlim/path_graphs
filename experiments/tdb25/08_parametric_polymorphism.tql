@@ -1,0 +1,7 @@
+# Get get all elements with $isa relationships here
+match $x isa! $t;
+get $x, $t;
+
+# The interpretation of this was a little confusing at first in TypeDB Studio, so here's an explanation
+# The graph now is overlaying the schema on top of the regular data, showing the schema types as the more punchy colors (more saturated, darker)
+

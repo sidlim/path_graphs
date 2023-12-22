@@ -1,0 +1,6 @@
+# id was defined to be an abstract attribute type, so there is no id
+# but match subtypes for the query, which is how we get the results below:
+
+match $x has id $id;
+
+get $x, $id;

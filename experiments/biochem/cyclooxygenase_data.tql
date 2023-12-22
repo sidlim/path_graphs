@@ -1,44 +1,19 @@
 # Try converting page 498 (pdf 485) of FA 2022 (cyclooxygenase/arachidonic acid pathway) to a pathology graph:
 
-# Load arachidonic acid production:
-insert $m isa molecule, has name "membrane phospholipid";
-insert $m isa molecule, has name "arachidonic acid";
-match $m1 isa molecule, has name "membrane phospholipid";
-    $m2 isa molecule, has name "arachidonic acid";
-insert $r1 (reactant: $m1, product: $m2) isa becomes;
-insert $e isa enzyme, has name "Phospholipase A2";
-match $e isa enzyme, has name "Phospholipase A2";
-    $r isa molecule, has name "membrane phospholipid";
-    $p isa molecule, has name "arachidonic acid";
-    $rxn (reactant: $r, product: $p) isa becomes;
-insert $cat_rxn (reaction: $rxn, catalyst: $e) isa catalyzes;
-insert $m isa molecule, has name "lipocortin";
-match $e isa enzyme, has name "Phospholipase A2";
-    $r isa molecule, has name "membrane phospholipid";
-    $p isa molecule, has name "arachidonic acid";
-    $rxn (reactant: $r, product: $p) isa becomes;
-    $PLA2_rxn (reaction: $rxn, catalyst: $e) isa catalyzes;
-    $lipocortin isa molecule, has name "lipocortin";
-insert $i (inhibitor: $lipocortin, catalysis: $PLA2_rxn) isa inhibits;
-
-
-# Load Cyclic Endoperoxide production:
-insert $p isa molecule, has name "cyclic endoperoxide";
-match $p isa molecule, has name "cyclic endoperoxide";
-    $r isa molecule, has name "arachidonic acid";
-insert $rxn (reactant: $r, product: $p) isa becomes;
-insert $e isa enzyme, has name "COX1";
-insert $e isa enzyme, has name "COX2";
-match $p isa molecule, has name "cyclic endoperoxide";
-    $r isa molecule, has name "arachidonic acid";
-    $rxn (reactant: $r, product: $p) isa becomes;
+insert 
+    # Load Arachidonic Acid production:
+    $mp isa molecule, has name "membrane phospholipid";
+    $aa isa molecule, has name "arachidonic acid";
+    $mp_to_aa (reactant: $mp, product: $aa) isa becomes;
+    $pla2 isa enzyme, has name "Phospholipase A2";
+    $pla2_rxn (reaction: $mp_to_aa, catalyst: $pla2) isa catalyzes;
+    $lc isa molecule, has name "lipocortin";
+    (inhibitor: $lc, catalysis: $pla2_rxn) isa inhibits;
+    
+    # Load Cyclic Endoperoxide production
+    $ce isa molecule, has name "cyclic endoperoxide";
+    $aa_to_ce (reactant: $aa, product: $ce) isa becomes;
     $cox1 isa enzyme, has name "COX1";
     $cox2 isa enzyme, has name "COX2";
-insert $catrxn (reaction: $rxn, catalyst: $cox1) isa catalyzes;
-match $p isa molecule, has name "cyclic endoperoxide";
-    $r isa molecule, has name "arachidonic acid";
-    $rxn (reactant: $r, product: $p) isa becomes;
-    $cox1 isa enzyme, has name "COX1";
-    $cox2 isa enzyme, has name "COX2";
-insert $catrxn (reaction: $rxn, catalyst: $cox2) isa catalyzes;
-
+    (reaction: $aa_to_ce, catalyst: $cox1) isa catalyzes;
+    (reaction: $aa_to_ce, catalyst: $cox2) isa catalyzes;

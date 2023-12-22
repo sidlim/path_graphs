@@ -1,0 +1,3 @@
+match $x has name $name;
+
+get $x, $name;

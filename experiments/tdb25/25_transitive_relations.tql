@@ -1,0 +1,14 @@
+# run after 24 & see the inferred relations:
+
+insert
+$u1 isa user, has name "Alice";
+$u2 isa user, has name "Bob";
+$u3 isa user, has name "Charlie";
+$uga isa user-group, has name "Group A";
+$ugb isa user-group, has name "Group B";
+$ugc isa user-group, has name "Group C";
+(group:$ugb, member:$uga) isa group-membership;
+(group:$ugc, member:$ugb) isa group-membership;
+(group:$uga, member:$u1) isa group-membership;
+(group:$ugb, member:$u2) isa group-membership;
+(group:$ugc, member:$u3) isa group-membership;

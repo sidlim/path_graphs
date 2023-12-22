@@ -1,0 +1,11 @@
+define
+
+# Extend the schema from 01
+
+action sub entity,
+    owns name,
+    plays permission:permitted-action;
+
+admin sub user;
+
+permission relates permitted-action;

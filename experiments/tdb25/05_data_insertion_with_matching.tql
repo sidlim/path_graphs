@@ -1,0 +1,10 @@
+match
+
+# Make every user who doesn't already have permission for README.md
+# have the permission for README.md
+
+$u isa user;
+$f isa file,
+    has path "README.md";
+not { ($u, $f) isa permission; };
+insert ($u, $f) isa permission;

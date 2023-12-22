@@ -1,0 +1,8 @@
+define
+
+# Make an attribute that takes on exactly one of 3 values.
+
+status sub attribute, value string, regex "^(STARTED|STOPPED|DELETED)$";
+
+task sub entity,
+    owns status;

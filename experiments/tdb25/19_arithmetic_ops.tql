@@ -1,0 +1,7 @@
+match
+$f isa file, has path "docs/quickstart_guide.adoc", has size-kb $s;
+?x = ($s * 2) + 200;
+?y = abs ((?x * 3) - 1);
+insert
+$f1 isa file, has path "config.yaml", has size-kb ?x;
+$f2 isa file, has path "logs.zip", has size-kb ?y;

@@ -1,0 +1,7 @@
+match
+
+$u isa user, has name $un;
+$g isa user-group, has name $gn;
+$m isa group-membership;
+
+get $u, $un, $g, $gn, $m;

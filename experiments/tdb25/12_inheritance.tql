@@ -1,0 +1,8 @@
+# Bob is defined as a user and not a person, and inherits the name characteristic from the Person type
+# so this query shows inheritance of a supertype during a query
+
+match
+$u isa user,
+    has name "Bob";
+    
+get $u;

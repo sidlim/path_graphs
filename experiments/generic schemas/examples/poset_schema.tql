@@ -1,0 +1,50 @@
+define
+
+# In the future, we need to #import ../poset.tql
+# For now, let's just paste it in, up to the next comment:
+
+ord sub relation, abstract,
+    relates weak-lesser,
+    relates weak-greater;
+
+rule order-transitivity: when {
+    $ord sub ord, relates $lesser, relates $greater;
+    $lesser sub ord:weak-lesser;
+    $greater sub ord:weak-greater;
+    ($lesser: $least, $greater: $middle) isa! $ord;
+    ($lesser: $middle, $greater: $greatest) isa! $ord;
+} then {
+    ($lesser: $least, $greater: $greatest) isa $ord;
+};
+
+# End the #import here; now get to the meat of the code.
+
+# Poset given by divides
+divides sub ord,
+    relates divisor as weak-lesser,
+    relates dividend as weak-greater;
+
+# Poset given by <=
+lte sub ord,
+    relates lesser as weak-lesser,
+    relates greater as weak-greater;
+
+# Define an integer attribute to fill in for divides and <=
+integer sub attribute, value long,
+    plays lte:lesser, plays lte:greater,
+    plays divides:divisor, plays divides:dividend;
+
+# Poset for a generic hierarchal structure - the type system, for example ;)
+subtype sub ord,
+    relates subordinate as weak-lesser,
+    relates superior as weak-greater;
+
+# Define a name attribute
+name sub attribute, value string;
+
+# Define a Type entity to play the roles in subordination
+Type sub entity,
+    plays subtype:subordinate,
+    plays subtype:superior,
+    owns integer,
+    owns name @key;

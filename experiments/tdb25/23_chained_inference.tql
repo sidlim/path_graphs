@@ -1,0 +1,7 @@
+match
+$f isa file,
+    has size-gb $g,
+    has path $p;
+get $f, $g, $p;
+
+# Get the inferred gigabyte sizes from files:

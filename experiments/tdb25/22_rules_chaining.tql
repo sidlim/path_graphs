@@ -1,0 +1,23 @@
+define
+
+size-mb sub attribute, value long;
+size-gb sub attribute, value long;
+
+file owns size-mb,
+    owns size-gb;
+
+rule compute-mb: when {
+    $f isa file,
+        has size-kb $kb;
+    ?mb = round($kb / 1024);
+} then {
+    $f has size-mb ?mb;
+};
+
+rule compute-gb: when {
+    $f isa file,
+        has size-mb $mb;
+    ?gb = round($mb / 1024);
+} then {
+    $f has size-gb ?gb;
+};

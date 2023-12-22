@@ -1,0 +1,9 @@
+# Get all the attributes (except for the names) associated with people named "Bob"
+
+match
+$p isa person; # use isa! here for strict type equality (and there will be no such $p because Bob is defined as a user (subtype of person))
+$p has name $p-name;
+$p-name == "Bob";
+$p has $x;
+not { $x == $p-name; };
+get $x;

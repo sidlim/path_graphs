@@ -1,0 +1,4 @@
+match
+$f isa file, has path $p;
+$p like "^docs/.*$";
+get $f, $p;

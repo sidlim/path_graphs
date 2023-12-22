@@ -1,0 +1,4 @@
+match
+    $T isa Type, has name $n;
+    $o isa ord;
+get $T, $n, $o;

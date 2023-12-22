@@ -1,0 +1,4 @@
+match 
+$x isa $y;
+
+get $y;

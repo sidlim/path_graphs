@@ -1,0 +1,10 @@
+match
+
+# Get the usernames of all users who can access the file at path "README.md"
+
+$u isa user, 
+    has username $uname;
+$f isa file,
+    has path 'README.md';
+$p(subject:$u, object:$f) isa permission;
+get $uname;

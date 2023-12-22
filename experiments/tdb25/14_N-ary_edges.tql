@@ -1,0 +1,11 @@
+match
+$u isa user,
+    has name "Bob";
+$f isa file,
+    has path "README.md";
+$p($u, $f) isa permission;
+insert
+$a isa action,
+    has name "edit";
+$p(permitted-action:$a);
+# Now $p has 3 outgoing links, making it a higher order component in the graph than an edge

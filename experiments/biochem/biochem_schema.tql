@@ -6,6 +6,15 @@ define
 # Example: in the arachidonic acid pathway, COXes (enzyme class) convert arachidonic acid into cyclic endoperoxides
 #    Some ambiguity here: Cyclic endoperoxides might be a class of intermediates, or class of final products
 
+# Another thing that I noticed: multi-activity enzymes exist, and I'm not sure if inhibitors act at the enzyme level
+# or if they act at the reaction level - e.g., is lipocortin an inhibitor of the entire phospholipase A2 enzyme?
+# or is it just an inhibitor of this particular reaction done by the enzyme?
+# This definitely is a case-by-case situation, and I don't know what the right way to handle this is
+
+# Part of the reason I haven't made much progress is scope. I'm not sure what should and shouldn't be part of the to-do list until the conferences
+# One way to go might be to flesh out the biochemistry module
+# MVP: a schema that lets us build and visualize hypergraphs
+
 becomes sub relation,
     relates reactant,
     relates product,
@@ -24,7 +33,7 @@ molecule sub entity,
     plays becomes:reactant,
     plays becomes:product,
     plays inhibits:inhibitor,
-    owns name;
+    owns name @key;
 
 enzyme sub molecule,
     plays catalyzes:catalyst;

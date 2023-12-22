@@ -1,0 +1,10 @@
+# Delete all permissions for the user with username 'al-capuchino'
+
+match
+
+$u isa user,
+    has username 'al-capuchino';
+$p(subject: $u) isa permission;
+
+delete
+$p isa permission;
