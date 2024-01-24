@@ -1,0 +1,12 @@
+define
+
+# This is meant to capture the difference between physiology and pathophysiology
+# Take the spirit of f(x + delta) ~ f(x) + delta * f'(x) where in some way, f
+# represents the system, x represents physiology, and delta represents the cause
+# of the pathophysiology. Then we should be able to track changes down the 
+# causal graph of the physiology, represented by delta & f'(x).
+
+# ^ The above is a tenuous link and the analogy might not completely follow,
+# But there are such things as derivatives on data structures, which is why I
+# think the spirit of the explanation holds. See the following link for details:
+# http://blog.sigfpe.com/2006/09/infinitesimal-types.html

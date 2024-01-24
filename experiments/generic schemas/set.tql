@@ -1,0 +1,46 @@
+define
+
+# Define the set object, membership and subset relations.
+# Really, I'd like to import poset to define the subset relation, but typeDB doesn't yet support imports.
+# Replace the below with an import when possible:
+
+# Define the 1st-degree ordering relation in the most general way possible:
+# Use weak-lesser and weak-greater because this is a <= operation
+# And also we run into trouble if we want a poset relation that uses the same names
+# So this way we leave lesser and greater unoccupied
+ord sub relation, abstract,
+    relates weak-lesser,
+    relates weak-greater;
+
+# Put in order-transitivity to infer that (a <= c) whenever (a <= b) AND (b <= c):
+rule order-transitivity: when {
+    $ord sub ord, relates $lesser, relates $greater;
+    $lesser sub ord:weak-lesser;
+    $greater sub ord:weak-greater;
+    ($lesser: $least, $greater: $middle) isa! $ord;
+    ($lesser: $middle, $greater: $greatest) isa! $ord;
+} then {
+    ($lesser: $least, $greater: $greatest) isa $ord;
+};
+
+
+
+
+
+# Realization: I have two ways of doing this.
+# Either I could build a set relation that can have element objects and subset relations
+# and not invoke poset, or I could have the set relation just relate elements
+# and build a whole new relation for contains/subset. Not sure which to do.
+# Maybe both? Perhaps the first way could infer the second and vice versa, so they end up equivalent?
+
+
+
+
+
+
+# Set "object" is really a relation relating member elements:
+set sub relation,
+    relates element;
+    
+# Subset relation gives us the order:
+

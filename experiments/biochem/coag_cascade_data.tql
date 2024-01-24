@@ -1,0 +1,62 @@
+# Try converting the coagulation cascade, given on FA 2022 pg 420; pdf page 399
+# The first aid diagram isn't too clear where factor 8 gets involved and what its
+# action is on factors 9 & 10, so I've consulted Osmosis, link below:
+# https://www.osmosis.org/answers/coagulation-cascade
+# Confirmed by looking at https://next.amboss.com/us/article/8T0Os2
+
+insert 
+    # Intrinsic Pathway:
+    # Start with: f12 -> f12a due to collagen, basement membrane, & activated platelet plug
+    $cg isa enzyme, has name "collagen";
+    $bm isa enzyme, has name "basement membrane";
+    $ap isa enzyme, has name "activated platelet plug";
+    $f12 isa enzyme, has name "Factor XII";
+    $f12a isa enzyme, has name "Factor XIIa";
+    $f12_ac (reactant: $f12, product: $f12a) isa becomes;
+    (reaction: $f12_ac, catalyst: $cg) isa catalyst;
+    (reaction: $f12_ac, catalyst: $bm) isa catalyst;
+    (reaction: $f12_ac, catalyst: $ap) isa catalyst;
+    # Next: f11 -> f11a due to f12a
+    $f11 isa enzyme, has name "Factor XI";
+    $f11a isa enzyme, has name "Factor XIa";
+    $f11_ac (reactant: $f11, product: $f11a) isa becomes;
+    (reaction: $f11_ac, catalyst: $f12a) isa catalyst;
+    # Next: f9 -> f9a due to f11a
+    $f9 isa enzyme, has name "Factor IX";
+    $f9a isa enzyme, has name "Factor IXa";
+    $f9_ac (reactant: $f9, product: $f9a) isa becomes;
+    (reaction: $f9_ac, catalyst: $f11a) isa catalyst;
+    
+    # Extrinsic Pathway:
+    # Start with f7 -> f7a
+    $f7 isa enzyme, has name "Factor VII";
+    $f7a isa enzyme, has name "Factor VIIa";
+    $f7_ac (reactant: $f7, product: $f7a) isa becomes;
+    # Tissue factor is involved here, but I'm not getting a clear picture of how
+    # Fixable later
+    
+    # Common Pathway:
+    # Start with f10 -> 10a:
+    $f10 isa enzyme, has name "Factor X";
+    $f10a isa enzyme, has name "Factor Xa";
+    $f10_ac (reactant: $f10, product: $f10a) isa becomes;
+    (reaction: $f10_ac, catalyst: $f7a) isa catalyst;
+    (reaction: $f10_ac, catalyst: $f9a) isa catalyst; # This is badly represented; fix this later
+    # Then f2 -> f2a catalyzed by f10a:
+    $f2 isa enzyme, has name "Factor II";
+    $f2a isa enzyme, has name "Factor IIa";
+    $f2_ac (reactant: $f2, product: $f2a) isa becomes;
+    (reaction: $f2_ac, catalyst: $f10a) isa catalyst;
+    # Then f1 -> f1a catalyzed by f2a:
+    $f1 isa enzyme, has name "Factor I";
+    $f1a isa enzyme, has name "Factor Ia";
+    $f1_ac (reactant: $f1, product: $f1a) isa becomes;
+    (reaction: $f1_ac, catalyst: $f2a) isa catalyst;
+
+    # Common patterns: make a molecule, make a molecule, make a reaction, make a catalyst
+    # If we could use inference here to shorten data insertion, that would be awesome
+    
+    # Annotations:
+    # Define sets for intrinsic and extrinsic and common pathways including the molecules, reactions
+    
+    # Features: Infer pro and anticoagulant diseases

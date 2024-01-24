@@ -1,0 +1,8 @@
+define
+
+# Eventually I want this to be a directed hypergraph
+# But for now let's just define edges and maybe also paths
+
+edge-abs sub relation,
+    relates to,
+    relates from;
