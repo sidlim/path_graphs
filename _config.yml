@@ -24,11 +24,12 @@ baseurl: "/path_graphs" # the subpath of your site, e.g. /blog
 url: "https://sidlim.github.io/" # the base hostname & protocol for your site, e.g. http://example.com
 
 # Build settings
-#theme: minima
-remote_theme: "mmistakes/minimal-mistakes@4.24.0"
+remote_theme: mmistakes/minimal-mistakes@4.24.0
+minimal_mistakes_skin: "dark"
 plugins:
   - jekyll-feed
   - jekyll-include-cache
+  - jekyll-include-remote-theme
 
 # Exclude from processing.
 # The following items will not be processed, by default.
