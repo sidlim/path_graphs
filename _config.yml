@@ -20,7 +20,7 @@
 
 title: "Path Graphs"
 description: "A digital rendition of the Concept Map" 
-baseurl: "/path_graphs/" # the subpath of your site, e.g. /blog
+baseurl: "/path_graphs" # the subpath of your site, e.g. /blog
 url: "https://sidlim.github.io/" # the base hostname & protocol for your site, e.g. http://example.com
 
 # Build settings
