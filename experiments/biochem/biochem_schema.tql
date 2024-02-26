@@ -1,4 +1,4 @@
-define
+    define
 
 # Also need a generic "molecule class" type
 # I'm finding that a lot of these pathways given in FA don't specify exact reactants or exact products
@@ -32,10 +32,61 @@ inhibits sub relation,
 molecule sub entity,
     plays becomes:reactant,
     plays becomes:product,
-    plays inhibits:inhibitor,
     owns name @key;
 
 enzyme sub molecule,
     plays catalyzes:catalyst;
 
 name sub attribute, value string;
+
+# Define two different kinds of changes here:
+# One for enzyme inhibition processes
+# And another for decreases in reactants or products
+
+delta_quantity sub relation,
+    relates quantity,
+    relates origin,
+    relates cause,
+    owns direction;
+
+delta_process sub relation,
+    relates process,
+    relates origin,
+    relates cause,
+    owns direction;
+
+direction sub attribute, value long;
+
+# Changes derived from changes in reactant quantity:
+rule reactant-derived-delta: when {
+    $reactant-change (quantity:$reactant, origin:$origin, direction:$d, cause:$_) isa delta_quantity;
+    (reactant:$reactant, product:$product) isa becomes;
+} then {
+    (quantity:$product, origin:$origin, cause:$reactant-change, direction:$d) isa delta_quantity;
+};
+
+# Changes in product derived from reaction inhibition/activation:
+rule reaction-derived-product-delta: when {
+    $reaction (reactant:$reactant, product:$product) isa becomes;
+    $reaction-change (process:$reaction, origin:$origin, direction:$d, cause:$_) isa delta_process;
+} then {
+    (quantity:$product, origin:$origin, direction:$d, cause:$reaction-change) isa delta_quantity;
+};
+
+# Changes in reactant derived from reaction inhibition/activation:
+rule reaction-derived-reactant-delta: when {
+    $reaction (reactant:$reactant, product:$product) isa becomes;
+    $reaction-change (process:$reaction, origin:$origin, direction:$d, cause:$_) isa delta_process;
+    # Flip the direction for the product side of the reaction change
+    ?n = (-1) * $d;
+} then {
+    (quantity:$reactant, origin:$origin, direction:?n, cause:$reaction-change) isa delta_quantity;
+};
+
+# Changes derived from changes in enzyme quantity:
+rule enzyme-derived-delta: when {
+    $catalysis (reaction:$reaction, catalyst:$enzyme) isa catalyzes;
+    $enzyme-change (quantity:$enzyme, origin:$origin, direction:$d, cause:$_) isa delta_quantity;
+} then {
+    (process:$reaction, origin:$origin, direction:$d, cause:$enzyme-change) isa delta_process;
+};
