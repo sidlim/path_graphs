@@ -3,7 +3,7 @@ define
 # Define the 1st-degree ordering relation in the most general way possible:
 # Use weak-lesser and weak-greater because this is a <= operation
 # And also we run into trouble if we want a poset relation that uses the same names
-# So this way we leave lesser and greater unoccupied
+# So this way we leave "lesser" and "greater" unoccupied
 ord sub relation, abstract,
     relates weak-lesser,
     relates weak-greater;

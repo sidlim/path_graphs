@@ -18,7 +18,8 @@
 becomes sub relation,
     relates reactant,
     relates product,
-    plays catalyzes:reaction;
+    plays catalyzes:reaction,
+    plays delta_process:process;
 
 catalyzes sub relation,
     relates reaction,
@@ -27,11 +28,16 @@ catalyzes sub relation,
 
 inhibits sub relation,
     relates inhibitor,
-    relates catalysis;
+    relates catalysis,
+    plays delta_quantity:cause,
+    plays delta_quantity:origin,
+    plays delta_process:cause,
+    plays delta_process:origin;
 
 molecule sub entity,
     plays becomes:reactant,
     plays becomes:product,
+    plays delta_quantity:quantity,
     owns name @key;
 
 enzyme sub molecule,
@@ -47,46 +53,104 @@ delta_quantity sub relation,
     relates quantity,
     relates origin,
     relates cause,
-    owns direction;
+    owns direction,
+    plays delta_quantity:cause,
+    plays delta_process:cause;
 
 delta_process sub relation,
     relates process,
     relates origin,
     relates cause,
-    owns direction;
+    owns direction,
+    plays delta_quantity:cause,
+    plays delta_process:cause;
 
 direction sub attribute, value long;
 
-# Changes derived from changes in reactant quantity:
-rule reactant-derived-delta: when {
-    $reactant-change (quantity:$reactant, origin:$origin, direction:$d, cause:$_) isa delta_quantity;
-    (reactant:$reactant, product:$product) isa becomes;
+# Infer changes in enzyme activity for inhibitors:
+rule inhibition-delta: when {
+    $c (catalyst:$enzyme, reaction:$r) isa catalyzes;
+    $inhibition (inhibitor:$m, catalysis:$c) isa inhibits;
 } then {
-    (quantity:$product, origin:$origin, cause:$reactant-change, direction:$d) isa delta_quantity;
+    (quantity:$enzyme, origin:$inhibition, cause:$inhibition) isa delta_quantity;
 };
 
-# Changes in product derived from reaction inhibition/activation:
-rule reaction-derived-product-delta: when {
-    $reaction (reactant:$reactant, product:$product) isa becomes;
-    $reaction-change (process:$reaction, origin:$origin, direction:$d, cause:$_) isa delta_process;
+rule inhibition-delta-direction: when {
+    $c (catalyst:$enzyme, reaction:$r) isa catalyzes;
+    $inhibition (inhibitor:$m, catalysis:$c) isa inhibits;
+    $dq (quantity:$enzyme, origin:$inhibition, cause:$inhibition) isa delta_quantity;
 } then {
-    (quantity:$product, origin:$origin, direction:$d, cause:$reaction-change) isa delta_quantity;
-};
-
-# Changes in reactant derived from reaction inhibition/activation:
-rule reaction-derived-reactant-delta: when {
-    $reaction (reactant:$reactant, product:$product) isa becomes;
-    $reaction-change (process:$reaction, origin:$origin, direction:$d, cause:$_) isa delta_process;
-    # Flip the direction for the product side of the reaction change
-    ?n = (-1) * $d;
-} then {
-    (quantity:$reactant, origin:$origin, direction:?n, cause:$reaction-change) isa delta_quantity;
+    $dq has direction -1;
 };
 
 # Changes derived from changes in enzyme quantity:
 rule enzyme-derived-delta: when {
     $catalysis (reaction:$reaction, catalyst:$enzyme) isa catalyzes;
-    $enzyme-change (quantity:$enzyme, origin:$origin, direction:$d, cause:$_) isa delta_quantity;
+    $enzyme-change (quantity:$enzyme, origin:$origin, cause:$_) isa delta_quantity;
 } then {
-    (process:$reaction, origin:$origin, direction:$d, cause:$enzyme-change) isa delta_process;
+    (process:$reaction, origin:$origin, cause:$enzyme-change) isa delta_process;
+};
+
+rule enzyme-derived-delta-direction: when {
+    $catalysis (reaction:$reaction, catalyst:$enzyme) isa catalyzes;
+    $enzyme-change (quantity:$enzyme, origin:$origin, cause:$_) isa delta_quantity,
+    has direction $d;
+    $dr (process:$reaction, origin:$origin, cause:$enzyme-change) isa delta_process;
+} then {
+    $dr has $d;
+};
+
+# Changes derived from changes in reactant quantity:
+rule reactant-derived-delta: when {
+    $reactant-change (quantity:$reactant, origin:$origin, cause:$_) isa delta_quantity;
+    (reactant:$reactant, product:$product) isa becomes;
+} then {
+    (quantity:$product, origin:$origin, cause:$reactant-change) isa delta_quantity;
+};
+
+rule reactant-derived-delta-direction: when {
+    $reactant-change (quantity:$reactant, origin:$origin, cause:$_) isa delta_quantity,
+    has direction $d;
+    (reactant:$reactant, product:$product) isa becomes;
+    $dq (quantity:$product, origin:$origin, cause:$reactant-change) isa delta_quantity;
+} then {
+    $dq has $d;
+};
+
+# Changes in product derived from reaction inhibition/activation:
+rule reaction-derived-product-delta: when {
+    $reaction (reactant:$reactant, product:$product) isa becomes;
+    $reaction-change (process:$reaction, origin:$origin, cause:$_) isa delta_process;
+} then {
+    (quantity:$product, origin:$origin, cause:$reaction-change) isa delta_quantity;
+};
+
+rule reaction-derived-product-delta-direction: when {
+    $reaction (reactant:$reactant, product:$product) isa becomes;
+    $reaction-change (process:$reaction, origin:$origin, cause:$_) isa delta_process,
+    has direction $d;
+    $dq (quantity:$product, origin:$origin, cause:$reaction-change) isa delta_quantity;
+} then {
+    $dq has $d;
+};
+
+# Changes in reactant derived from reaction inhibition/activation:
+rule reaction-derived-reactant-delta: when {
+    $reaction (reactant:$reactant, product:$product) isa becomes;
+    $reaction-change (process:$reaction, origin:$origin, cause:$_) isa delta_process;
+    # Flip the direction for the product side of the reaction change
+} then {
+    (quantity:$reactant, origin:$origin, cause:$reaction-change) isa delta_quantity;
+};
+
+# Assign direction to changes in reactant derived from reaction inhibition/activation:
+rule reaction-derived-reactant-delta-direction: when {
+    $reaction (reactant:$reactant, product:$product) isa becomes;
+    $reaction-change (process:$reaction, origin:$origin, cause:$_) isa delta_process,
+    has direction $d;
+    # Flip the direction for the product side of the reaction change
+    $delta (quantity:$reactant, origin:$origin, cause:$reaction-change) isa delta_quantity;
+    ?n = (-1) * $d;
+} then {
+    $delta has direction ?n;
 };

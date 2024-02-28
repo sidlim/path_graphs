@@ -1,5 +1,26 @@
-match $m isa molecule, has name $n;
-    $r isa becomes;
-    $c isa catalyzes;
-    $i isa inhibits;
-get $m, $n, $r, $c, $i;
+#match $m isa molecule, has name $n;
+#    $r isa becomes;
+#    $c isa catalyzes;
+#    $i isa inhibits;
+#get $m, $n, $r, $c, $i;
+
+#match $m isa molecule, has name $n;
+#    $e isa enzyme, has name "Phospholipase A2";
+#    $c (catalyst: $e, reaction: $r) isa catalyzes;
+#    $i (inhibitor: $m, catalysis: $c) isa inhibits;
+#fetch $n;
+
+#match $dq (quantity:$enzyme, origin:$oq, cause:$cq) isa delta_quantity,
+#    has direction $dq_dir;
+#    $dp (process:$process, origin:$op, cause:$cp) isa delta_process,
+#    has direction $dp_dir;
+#get $dq, $enzyme, $oq, $cq, $dq_dir, $dp, $process, $op, $cp, $dp_dir;
+
+match $lc isa molecule,
+    has name "lipocortin";
+    $i (catalysis: $c, inhibitor: $lc) isa inhibits;
+    $m isa! molecule,
+    has name $n;
+    $dq (quantity: $m, origin: $i, cause: $_) isa delta_quantity,
+    has direction -1;
+fetch $n;
