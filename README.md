@@ -1,0 +1,5 @@
+## Path Graphs:
+TypeDB 2 pathology graph and schema for several pathways in the body. <br/>
+Core concept: A lot of the facts and associations you have to memorize in medical school can be derived from the causal models that underly them. For example, the predilection to osteoarthritis in elderly women is considered an epidemiological association. However, one can also derive it from the interaction of estrogen with bone mineralization and the effect menopause has on this relationship. This is valuable for several reasons: 1) you memorize less, and you memorize more precise relationships 2) knowing the mechanism lets you generalize this prediction to, for example, those coming off of HRT.
+
+Path Graphs tries to push this idea to its limits: Can we store solely the causal relationships in a database and derive everything else that one might want to know? What other types do we need to include for this idea to become realizable? How do we represent concepts like enzymes or multi-specie reactions in the typical causal graph (edge & vertex) model? How do we represent feedback loops in the causal graph model, which is supposed to be acyclic?
