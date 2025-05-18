@@ -1,0 +1,19 @@
+# Try converting page 498 (pdf 485) of FA 2022 (cyclooxygenase/arachidonic acid pathway) to a pathology graph:
+
+insert 
+    # Load Arachidonic Acid production:
+    $mp isa molecule, has name "membrane phospholipid";
+    $aa isa molecule, has name "arachidonic acid";
+    $mp_to_aa isa becomes (reactant: $mp, product: $aa);
+    $pla2 isa enzyme, has name "Phospholipase A2";
+    $pla2_rxn isa catalyzes (reaction: $mp_to_aa, catalyst: $pla2);
+    $lc isa molecule, has name "lipocortin";
+    (inhibitor: $lc, catalysis: $pla2_rxn) isa inhibits;
+    
+    # Load Cyclic Endoperoxide production
+    $ce isa molecule, has name "cyclic endoperoxide";
+    $aa_to_ce isa becomes (reactant: $aa, product: $ce);
+    $cox1 isa enzyme, has name "COX1";
+    $cox2 isa enzyme, has name "COX2";
+    (reaction: $aa_to_ce, catalyst: $cox1) isa catalyzes;
+    (reaction: $aa_to_ce, catalyst: $cox2) isa catalyzes;

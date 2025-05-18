@@ -1,0 +1,24 @@
+define
+
+relation becomes,
+    relates reactant,
+    relates product;
+
+relation catalyzes,
+    relates reaction,
+    relates catalyst,
+    plays inhibits:catalysis;
+
+relation inhibits,
+    relates inhibitor,
+    relates catalysis;
+
+entity molecule,
+    plays becomes:reactant,
+    plays becomes:product,
+    owns name @key;
+
+entity enzyme sub molecule,
+    plays catalyzes:catalyst;
+
+attribute name, value string;
