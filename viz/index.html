@@ -4,6 +4,7 @@
 <head>
     <title>Pathology Graphs</title>
     <script src='https://cdn.jsdelivr.net/npm/d3@7'></script>
+    <script src='data/1Dgraph.js'></script>
     <style type='text/css'>
         svg {
             height: 100dvh;
@@ -14,13 +15,21 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #13294b;
             overflow: hidden;
+            background: #2D4C7A;
+            background: linear-gradient(330deg,rgba(45, 76, 122, 1) 0%, rgba(46, 99, 179, 1) 100%);
         }
 
         text {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .nodelabel {
             fill: white;
+        }
+
+        .edgelabel {
+            fill: orange;
         }
 
         @font-face {
@@ -33,37 +42,18 @@
 <body>
     <script>
         // Load data:
-        data = {
-            nodes: [{id: 1, name: 'Membrane Phospholipid'},
-                    {id: 2, name: 'Arachidonic Acid'},
-                    {id: 3, name: '5-HPETE'},
-                    {id: 4, name: 'LTE4'},
-                    {id: 5, name: 'LTD4'},
-                    {id: 6, name: 'LTC4'},
-                    {id: 7, name: 'LTB4'},
-                    {id: 8, name: 'Bronchoconstriction'},
-                    {id: 9, name: 'Cyclic Endoperoxide'},
-                    {id: 10, name: 'Prostacyclin'},
-                    {id: 11, name: 'Prostaglandins'},
-                    {id: 12, name: 'Thromboxane'}/**/],
-            edges: [{source: 1, target: 2},
-                    {source: 2, target: 3},
-                    {source: 3, target: 4},
-                    {source: 3, target: 5},
-                    {source: 3, target: 6},
-                    {source: 3, target: 7},
-                    {source: 4, target: 8},
-                    {source: 5, target: 8},
-                    {source: 6, target: 8},
-                    {source: 2, target: 9},
-                    {source: 9, target: 10},
-                    {source: 9, target: 11},
-                    {source: 9, target: 12}/**/]
-        }
-
-        // Getters for node properties:
-        let getNodeName = (node) => node.name;
+        let data = Data['Aspirin Induced Asthma']
+        // Getters for node & edge properties:
+        let getNodeLabel = (node) => node.label;
         let getEdgeType = (edge) => 1;
+        let getEdgeLabel = (edge) => {
+            if ('label' in edge) {
+                return(edge.label)
+            }
+            else {
+                return('')
+            }
+        };
 
         // page setup and dimensions:
         const svg = d3.select('body').append('svg');
@@ -76,14 +66,13 @@
         let getEdgeColor = (edge) => color(edge.type);
 
         // Torque custom force:
-        const axis = {x: 1, y: 0};                  // Perpendicular axis to align against
         let torqueCustomForce = (alpha) => {        // Force that tries to rotate edges to point down
             data.edges.forEach(edge => {
                 dx = edge.target.x - edge.source.x;
                 dy = edge.target.y - edge.source.y;
-                alignment = dx * axis.x + dy * axis.y;
-                edge.target.vx += -alpha * dx * 0.05
-                edge.target.vy += -alpha * dy * 0.05                
+                theta = Math.atan2(dx, dy);         // Get the angle from the vertical (the order is flipped)
+                edge.target.vx += -Math.sin(theta) * alpha * dy * 0.05
+                edge.target.vy += Math.sin(theta) * alpha * dx * 0.05
             });
         }
 
@@ -104,7 +93,7 @@
             .attr('d', 'M0,-5L10,0L0,5')            // triangle path to follow
 
         // Method for calculating arrow positions and path:
-        const arrowheadToNodeOffset = 20;
+        const arrowheadToNodeOffset = 30;
         let edgeShape = (d) => {
                 // Project the vector of the edge down to arrowheadToNodeOffset px:
                 theta = Math.atan2(d.target.y - d.source.y, d.target.x - d.source.x)
@@ -118,18 +107,32 @@
 
         // Build links:
         const link = svg.append('g')
+            .attr('class', 'edge-container')                // Make a container class
             .attr('fill', 'none')
             .attr('stroke-width', 1.5)
             .selectAll('path')
             .data(data.edges).join('path')                  // Fill with our links
             .attr('stroke', getEdgeColor)                   // color appropriately
             .attr('marker-end', d => `url("#arrow-${getEdgeType(d)}")`)
-        
+        const label = svg.append('g')
+            .attr('class', 'edgelabel-container')
+            .selectAll('.edgelabel')
+            .data(data.edges).join('g')
+            .attr('class', 'edgelabel')
+            label.append('text')
+            .text(getEdgeLabel)
+            .attr('text-anchor', 'middle')
+            .attr('dominant-baseline', 'middle')
+
         // Build nodes:
-        const node = svg.selectAll('.node').data(data.nodes).join('g')
-            .attr('class', 'node')                  // Make a group for a node
+        const node = svg.append('g')
+            .attr('class', 'node-container')
+            .selectAll('.nodelabel')
+            .data(data.nodes)
+            .join('g')
+            .attr('class', 'nodelabel')             // Make a group for a node
             node.append('text')                     // Fill the group with text
-                .text(getNodeName)                  // use the node Name for the label
+                .text(getNodeLabel)                  // use the node label
                 .attr('text-anchor', 'middle')      // center the label
                 .attr('dominant-baseline', 'middle');
 
@@ -145,6 +148,7 @@
             .force('torque', torqueCustomForce)
             .on('tick', () => {                     // on every sim tick:
                 link.attr('d', edgeShape)           // draw the edge path & position text appropriately:
+                label.attr('transform', d => `translate(${(d.source.x + d.target.x) / 2}, ${(d.source.y + d.target.y) / 2})`);
                 node.attr('transform', d => `translate(${d.x}, ${d.y})`);
             });
 
