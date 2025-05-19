@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Pathology Graphs</title>
+    <script src='https://cdn.jsdelivr.net/npm/d3@7'></script>
+    <style type='text/css'>
+        svg {
+            height: 100dvh;
+            width: 100%;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #13294b;
+            overflow: hidden;
+        }
+
+        text {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            fill: white;
+        }
+
+        @font-face {
+            font-family: 'Segoe UI';
+            src: local('Segoe UI'),
+                url('segoe-ui/Segoe UI.ttf');
+        }
+    </style>
+
+<body>
+    <script>
+        // Load data:
+        data = {
+            nodes: [{id: 1, name: 'Membrane Phospholipid'},
+                    {id: 2, name: 'Arachidonic Acid'},
+                    {id: 3, name: '5-HPETE'},
+                    {id: 4, name: 'LTE4'},
+                    {id: 5, name: 'LTD4'},
+                    {id: 6, name: 'LTC4'},
+                    {id: 7, name: 'LTB4'},
+                    {id: 8, name: 'Bronchoconstriction'},
+                    {id: 9, name: 'Cyclic Endoperoxide'},
+                    {id: 10, name: 'Prostacyclin'},
+                    {id: 11, name: 'Prostaglandins'},
+                    {id: 12, name: 'Thromboxane'}/**/],
+            edges: [{source: 1, target: 2},
+                    {source: 2, target: 3},
+                    {source: 3, target: 4},
+                    {source: 3, target: 5},
+                    {source: 3, target: 6},
+                    {source: 3, target: 7},
+                    {source: 4, target: 8},
+                    {source: 5, target: 8},
+                    {source: 6, target: 8},
+                    {source: 2, target: 9},
+                    {source: 9, target: 10},
+                    {source: 9, target: 11},
+                    {source: 9, target: 12}/**/]
+        }
+
+        // Getters for node properties:
+        let getNodeName = (node) => node.name;
+        let getEdgeType = (edge) => 1;
+
+        // page setup and dimensions:
+        const svg = d3.select('body').append('svg');
+        const width = document.body.getBoundingClientRect().width;
+        const height = window.innerHeight;
+        
+        // color scheme for edges:
+        const types = new Set(data.edges.map(getEdgeType));
+        const color = d3.scaleOrdinal(types, [d3.color('white'), d3.color('white').darker(types.size - 1)]);
+        let getEdgeColor = (edge) => color(edge.type);
+
+        // Torque custom force:
+        const axis = {x: 1, y: 0};                  // Perpendicular axis to align against
+        let torqueCustomForce = (alpha) => {        // Force that tries to rotate edges to point down
+            data.edges.forEach(edge => {
+                dx = edge.target.x - edge.source.x;
+                dy = edge.target.y - edge.source.y;
+                alignment = dx * axis.x + dy * axis.y;
+                edge.target.vx += -alpha * dx * 0.05
+                edge.target.vy += -alpha * dy * 0.05                
+            });
+        }
+
+        // Arrowhead setup:
+        const arrowheadSize = 6;
+        svg.append('defs').selectAll('marker')
+            .data(types)
+            .join('marker')
+            .attr('id', d => `arrow-${d}`)          // setup multiple-different arrow types if needed
+            .attr('viewBox', '0 -5 10 10')
+            .attr('refX', 0)                        // offset from the line end at which to draw the triangle
+            .attr('refY', 0)                        // offset from the line end (perpendicular), like above
+            .attr('markerWidth', arrowheadSize)     // arrowhead size
+            .attr('markerHeight', arrowheadSize)    // arrowhead size
+            .attr('orient', 'auto')                 // auto-rotate to face appropriately
+            .append('path')
+            .attr('fill', color)                    // color automatically
+            .attr('d', 'M0,-5L10,0L0,5')            // triangle path to follow
+
+        // Method for calculating arrow positions and path:
+        const arrowheadToNodeOffset = 20;
+        let edgeShape = (d) => {
+                // Project the vector of the edge down to arrowheadToNodeOffset px:
+                theta = Math.atan2(d.target.y - d.source.y, d.target.x - d.source.x)
+                dx = arrowheadToNodeOffset * Math.cos(theta);
+                dy = arrowheadToNodeOffset * Math.sin(theta);
+                // Now, [dx, dy] is our offset vector v.
+                // Move v away from the source for the tail, and move -v away from the target for the head.
+                // Wrap it up into a path:
+                return (`M${d.source.x + dx},${d.source.y + dy} L${d.target.x - dx},${d.target.y - dy}`)
+            }
+
+        // Build links:
+        const link = svg.append('g')
+            .attr('fill', 'none')
+            .attr('stroke-width', 1.5)
+            .selectAll('path')
+            .data(data.edges).join('path')                  // Fill with our links
+            .attr('stroke', getEdgeColor)                   // color appropriately
+            .attr('marker-end', d => `url("#arrow-${getEdgeType(d)}")`)
+        
+        // Build nodes:
+        const node = svg.selectAll('.node').data(data.nodes).join('g')
+            .attr('class', 'node')                  // Make a group for a node
+            node.append('text')                     // Fill the group with text
+                .text(getNodeName)                  // use the node Name for the label
+                .attr('text-anchor', 'middle')      // center the label
+                .attr('dominant-baseline', 'middle');
+
+        // Build the force graph:
+        const simulation = d3.forceSimulation(data.nodes)
+            .force('link', d3.forceLink()           // Force keeping connected nodes together
+                .id(d => d.id)                      // Tell which nodes to use
+                .links(data.edges)                  // Tell which edges to use
+                .strength(0.1))
+            .force('charge', d3.forceManyBody()     // Force for repulsion between nodes
+                .strength(-300))
+            .force('center', d3.forceCenter(width / 2, height / 2)) // Positional force
+            .force('torque', torqueCustomForce)
+            .on('tick', () => {                     // on every sim tick:
+                link.attr('d', edgeShape)           // draw the edge path & position text appropriately:
+                node.attr('transform', d => `translate(${d.x}, ${d.y})`);
+            });
+
+        // Interaction logic:
+        let dragstarted = (event) => {              // Raise simulation temp so nodes move on drag
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            event.subject.fx = event.subject.x;
+            event.subject.fy = event.subject.y;
+        }
+
+        let dragged = (event) => {                     // Apply a force to nodes on drag
+            event.subject.fx = event.x;
+            event.subject.fy = event.y;
+        }
+
+        let dragended = (event) => {
+            if (!event.active) simulation.alphaTarget(0);
+            event.subject.fx = null;
+            event.subject.fy = null;
+        }
+
+        // Setup node drag behavior
+        node.call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended))
+
+    </script>
+</body>
+
+</html>
