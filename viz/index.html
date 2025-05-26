@@ -5,6 +5,7 @@
     <title>Pathology Graphs</title>
     <script src='https://cdn.jsdelivr.net/npm/d3@7'></script>
     <script src='data/1Dgraph.js'></script>
+    <script src='umls-query.js'></script>
     <style type='text/css'>
         svg {
             height: 100dvh;
@@ -24,7 +25,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
-        .nodelabel {
+        .node {
             fill: white;
         }
 
@@ -40,23 +41,25 @@
     </style>
 
 <body>
+    <svg></svg>
     <script>
         // Load data:
         let data = Data['Aspirin Induced Asthma']
         // Getters for node & edge properties:
+        let getNodeID = (node) => node.label;
         let getNodeLabel = (node) => node.label;
-        let getEdgeType = (edge) => 1;
+        let getEdgeType = (edge) => {return(1)};
         let getEdgeLabel = (edge) => {
             if ('label' in edge) {
                 return(edge.label)
             }
             else {
-                return('')
+                return;
             }
         };
 
         // page setup and dimensions:
-        const svg = d3.select('body').append('svg');
+        let svg = d3.select(document.querySelector('svg'));
         const width = document.body.getBoundingClientRect().width;
         const height = window.innerHeight;
         
@@ -75,6 +78,27 @@
                 edge.target.vy += Math.sin(theta) * alpha * dx * 0.05
             });
         }
+
+        // Build the force graph:
+        const simulation = d3.forceSimulation(data.nodes)
+            .force('link', d3.forceLink()           // Force keeping connected nodes together
+                .id(d => d.id)                      // Tell which nodes to use
+                .links(data.edges)                  // Tell which edges to use
+                .strength(0.1))
+            .force('charge', d3.forceManyBody()     // Force for repulsion between nodes
+                .strength(-300))
+            .force('center', d3.forceCenter(width / 2, height / 2)) // Positional force
+            .force('torque', torqueCustomForce)
+            .on('tick', () => {                     // on every sim tick:
+                d3.selectAll('.edge').attr('d', edgeShape)           // draw the edge path & position text appropriately:
+                d3.selectAll('.edgelabel').attr('transform', d => `translate(${(d.source.x + d.target.x) / 2}, ${(d.source.y + d.target.y) / 2})`);
+                d3.selectAll('.node').attr('transform', d => `translate(${d.x}, ${d.y})`);
+            });
+
+        // Custom fade animation timing:
+        const fadeEase = d3.transition()
+            .duration(750)
+            .ease(d3.easeLinear);
 
         // Arrowhead setup:
         const arrowheadSize = 6;
@@ -106,51 +130,70 @@
             }
 
         // Build links:
-        const link = svg.append('g')
-            .attr('class', 'edge-container')                // Make a container class
-            .attr('fill', 'none')
-            .attr('stroke-width', 1.5)
-            .selectAll('path')
-            .data(data.edges).join('path')                  // Fill with our links
-            .attr('stroke', getEdgeColor)                   // color appropriately
-            .attr('marker-end', d => `url("#arrow-${getEdgeType(d)}")`)
-        const label = svg.append('g')
+        const linkContainer = svg.append('g')
+            .attr('class', 'edge-container')
+
+        function updateEdges(data) {
+            // shallow copy data to protect from mutation:
+            const data_copy = [...data];
+            //simulation.links(data_copy);
+            const edges = d3.select('.edge-container').selectAll('path')
+                .data(data_copy).join(
+                    enter => enter.append('path')
+                                .attr('stroke', getEdgeColor)               // color appropriately
+                                .attr('marker-end', d => `url("#arrow-${getEdgeType(d)}")`)
+                                .attr('class', 'edge')
+                                .style('opacity', 0)
+                                .transition().style('opacity', 1),
+                    update => update,
+                    exit => exit.transition().style('opacity', 0).remove()
+                )
+                
+        }
+        updateEdges(data.edges);
+
+        const labelContainer = svg.append('g')
             .attr('class', 'edgelabel-container')
-            .selectAll('.edgelabel')
-            .data(data.edges).join('g')
-            .attr('class', 'edgelabel')
-            label.append('text')
-            .text(getEdgeLabel)
-            .attr('text-anchor', 'middle')
-            .attr('dominant-baseline', 'middle')
+            
+        function updateEdgeLabels(data) {
+            const data_filtered = data.filter(getEdgeLabel);
+            const labels = d3.select('.edgelabel-container').selectAll('text')
+                .data(data_filtered).join(
+                    enter => enter.append('text')
+                                .text(getEdgeLabel)
+                                .attr('class', 'edgelabel')
+                                .attr('text-anchor', 'middle')
+                                .attr('dominant-baseline', 'middle')
+                                .style('opacity', 0)
+                                .transition().style('opacity', 1),
+                    update => update,
+                    exit => exit.style('opacity', 1).transition().style('opacity', 0).remove()
+                )
+        }
+        updateEdgeLabels(data.edges);
 
         // Build nodes:
-        const node = svg.append('g')
+        const nodeContainer = svg.append('g')
             .attr('class', 'node-container')
-            .selectAll('.nodelabel')
-            .data(data.nodes)
-            .join('g')
-            .attr('class', 'nodelabel')             // Make a group for a node
-            node.append('text')                     // Fill the group with text
-                .text(getNodeLabel)                  // use the node label
-                .attr('text-anchor', 'middle')      // center the label
-                .attr('dominant-baseline', 'middle');
-
-        // Build the force graph:
-        const simulation = d3.forceSimulation(data.nodes)
-            .force('link', d3.forceLink()           // Force keeping connected nodes together
-                .id(d => d.id)                      // Tell which nodes to use
-                .links(data.edges)                  // Tell which edges to use
-                .strength(0.1))
-            .force('charge', d3.forceManyBody()     // Force for repulsion between nodes
-                .strength(-300))
-            .force('center', d3.forceCenter(width / 2, height / 2)) // Positional force
-            .force('torque', torqueCustomForce)
-            .on('tick', () => {                     // on every sim tick:
-                link.attr('d', edgeShape)           // draw the edge path & position text appropriately:
-                label.attr('transform', d => `translate(${(d.source.x + d.target.x) / 2}, ${(d.source.y + d.target.y) / 2})`);
-                node.attr('transform', d => `translate(${d.x}, ${d.y})`);
-            });
+        
+        function updateNodes(data) {
+            const data_copy = [...data];
+            simulation.nodes(data_copy);
+            const nodes = d3.select('.node-container').selectAll('text')
+                .data(data_copy).join(
+                    enter => enter.append('text')
+                                .text(getNodeLabel)
+                                .attr('class', 'node')
+                                .attr('text-anchor', 'middle')
+                                .attr('dominant-baseline', 'middle')
+                                .style('opacity', 0)
+                                .transition().style('opacity', 1),
+                    update => update,
+                    exit => exit.style('opacity', 1).transition().style('opacity', 0).remove()
+                )
+                
+        }
+        updateNodes(data.nodes);
 
         // Interaction logic:
         let dragstarted = (event) => {              // Raise simulation temp so nodes move on drag
@@ -171,7 +214,7 @@
         }
 
         // Setup node drag behavior
-        node.call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended))
+        d3.selectAll('.node').call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended))
 
     </script>
 </body>

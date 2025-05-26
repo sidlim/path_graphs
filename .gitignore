@@ -2,3 +2,4 @@
 node_modules/
 typedb_docs/
 llm/
+db/
