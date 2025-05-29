@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Causal Path: Builder</title>
+        <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+        <script src="graph-vis.js"></script>
+        <script src="data/1Dgraph.js"></script>
+        <script src="umls-query.js"></script>
+        <style type="text/css">
+            text {
+                text-anchor: middle;
+                dominant-baseline: middle;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+
+            .node {
+                fill: white;
+            }
+
+            .edgeLabel {
+                fill: orange;
+            }
+
+            .edge {
+                stroke: white;
+            }
+
+            svg {
+                height: 100dvh;
+                width: 100%;
+            }
+
+            html, body {
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                background: #2D4C7A;
+                background: linear-gradient(330deg,rgba(45, 76, 122, 1) 0%, rgba(46, 99, 179, 1) 100%);
+            }
+
+            @font-face {
+                font-family: 'Segoe UI';
+                src: local('Segoe UI'),
+                    url('segoe-ui/Segoe UI.ttf');
+            }
+        </style>
+    </head>
+    <body>
+        <svg id="diagram"></svg>
+        <script type="text/javascript">
+            let diagram = document.querySelector('#diagram');
+            let viz = new Graph_Visualization(diagram);
+
+            // Graph element ID accessor:
+            let getNodeLabel = (d) => d.label;
+
+            // Forces:
+            let node_repulsion = d3.forceManyBody().strength(-300);
+            let centering = d3.forceCenter(diagram.clientWidth / 2, diagram.clientHeight / 2);
+            let edge_attraction = d3.forceLink().strength(0.1).id(d => d.id);
+
+            // Custom Edge shape:
+            const arrowheadToNodeOffset = 30;
+            let edgeShape = (d) => {
+                theta = Math.atan2(d.target.y - d.source.y, d.target.x - d.source.x)
+                dx = arrowheadToNodeOffset * Math.cos(theta);
+                dy = arrowheadToNodeOffset * Math.sin(theta);
+                return(`M${d.source.x + dx},${d.source.y + dy} L${d.target.x - dx},${d.target.y - dy}`)
+            };
+
+            // Interaction logic:
+            let dragstarted = (event) => {              // Raise simulation temp so nodes move on drag
+                if (!event.active) viz.simulation.alphaTarget(0.3).restart();
+                event.subject.fx = event.subject.x;
+                event.subject.fy = event.subject.y;
+            }
+
+            let dragged = (event) => {                     // Apply a force to nodes on drag
+                event.subject.fx = event.x;
+                event.subject.fy = event.y;
+            }
+
+            let dragended = (event) => {
+                if (!event.active) viz.simulation.alphaTarget(0);
+                event.subject.fx = null;
+                event.subject.fy = null;
+            }
+
+            let build_nodes = viz.register_node('text',
+                enter => {enter.append('text')
+                            .text(getNodeLabel)
+                            .attr('class', 'node')
+                            .call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended))
+                },
+                update => update.text(getNodeLabel),
+                exit => exit.remove(),
+                {charge: node_repulsion, center: centering},
+                [() => {d3.selectAll('.node').attr('transform', d => `translate(${d.x}, ${d.y})`)}]
+            )
+
+            let build_edges = viz.register_relation('g.edge-group',
+                enter => {let g = enter.append('g').attr('class', 'edge-group')
+                            g.append('path').attr('class', 'edge')
+                            .attr('marker-end', d => `url('#arrowhead')`);
+                            g.append('text')
+                            .text(d => d.label ? d.label : '')
+                            .attr('class', 'edgeLabel')
+                },
+                update => update,
+                exit => exit.remove(),
+                {link: edge_attraction},
+                [() => {
+                    d3.selectAll('.edge').attr('d', edgeShape)
+                    d3.selectAll('.edgeLabel').attr('transform', d => `translate(${(d.source.x + d.target.x)/2}, ${(d.source.y + d.target.y)/2})`)
+                }]
+            )
+
+            let build_arrowhead = viz.register_def('marker',
+                enter => enter.append('marker').attr('id', 'arrowhead')
+                    .attr('viewBox', '0 -5 10 10')
+                    .attr('refX', 0).attr('refY', 0)
+                    .attr('markerHeight', 6).attr('markerWidth', 6)
+                    .attr('orient', 'auto')
+                    .append('path')
+                    .attr('fill', 'context-stroke')
+                    .attr('d', 'M0,-5L10,0L0,5'),
+                update => update,
+                exit => exit
+            );
+
+            let data = Data['Aspirin Induced Asthma'];
+            build_arrowhead([{id: 'arrowhead-def'}], x => {return(x.id)});
+            build_nodes(data.nodes, node => node.id);
+            build_edges(data.edges, (e => e.id));
+        </script>
+    </body>
+</html>

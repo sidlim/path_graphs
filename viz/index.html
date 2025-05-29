@@ -88,7 +88,7 @@
             .force('charge', d3.forceManyBody()     // Force for repulsion between nodes
                 .strength(-300))
             .force('center', d3.forceCenter(width / 2, height / 2)) // Positional force
-            .force('torque', torqueCustomForce)
+            //.force('torque', torqueCustomForce)
             .on('tick', () => {                     // on every sim tick:
                 d3.selectAll('.edge').attr('d', edgeShape)           // draw the edge path & position text appropriately:
                 d3.selectAll('.edgelabel').attr('transform', d => `translate(${(d.source.x + d.target.x) / 2}, ${(d.source.y + d.target.y) / 2})`);
@@ -113,7 +113,7 @@
             .attr('markerHeight', arrowheadSize)    // arrowhead size
             .attr('orient', 'auto')                 // auto-rotate to face appropriately
             .append('path')
-            .attr('fill', color)                    // color automatically
+            .attr('fill', 'context-stroke')
             .attr('d', 'M0,-5L10,0L0,5')            // triangle path to follow
 
         // Method for calculating arrow positions and path:
