@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta http-equiv="Referrer-Policy" content="no-referrer, strict-origin-when-cross-origin" />
         <title>Causal Path: Builder</title>
         <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
         <script src="graph-vis.js"></script>
@@ -26,7 +27,7 @@
             }
 
             svg {
-                height: 100dvh;
+                height: 100%;
                 width: 100%;
             }
 
@@ -43,10 +44,27 @@
                 src: local('Segoe UI'),
                     url('segoe-ui/Segoe UI.ttf');
             }
+
+            body {
+                display: grid;
+                height: 100vh;
+            }
+
+            .pane {
+                resize: vertical;
+                overflow: auto;
+                border-bottom: 1px solid;
+            }
         </style>
     </head>
     <body>
-        <svg id="diagram"></svg>
+        <div class="pane">
+
+        </div>
+        <div class="pane">
+            <svg id="diagram"></svg>
+        </div>
+        
         <script type="text/javascript">
             let diagram = document.querySelector('#diagram');
             let viz = new Graph_Visualization(diagram);
@@ -56,7 +74,6 @@
 
             // Forces:
             let node_repulsion = d3.forceManyBody().strength(-300);
-            let centering = d3.forceCenter(diagram.clientWidth / 2, diagram.clientHeight / 2);
             let edge_attraction = d3.forceLink().strength(0.1).id(d => d.id);
 
             // Custom Edge shape:
@@ -86,6 +103,12 @@
                 event.subject.fy = null;
             }
 
+            // parent node to handle all the zoom stuff:
+            let graph = viz.d3_root.append('g')
+            viz.d3_root.call(d3.zoom().on("zoom", function(event) {
+                graph.attr("transform", event.transform)
+            }))
+
             let build_nodes = viz.register_node('text',
                 enter => {enter.append('text')
                             .text(getNodeLabel)
@@ -94,16 +117,18 @@
                 },
                 update => update.text(getNodeLabel),
                 exit => exit.remove(),
-                {charge: node_repulsion, center: centering},
-                [() => {d3.selectAll('.node').attr('transform', d => `translate(${d.x}, ${d.y})`)}]
+                {charge: node_repulsion},
+                [() => {d3.selectAll('.node').attr('transform', d => `translate(${d.x}, ${d.y})`)}],
+                graph
             )
 
             let build_edges = viz.register_relation('g.edge-group',
                 enter => {let g = enter.append('g').attr('class', 'edge-group')
                             g.append('path').attr('class', 'edge')
                             .attr('marker-end', d => `url('#arrowhead')`);
-                            g.append('text')
-                            .text(d => d.label ? d.label : '')
+                            g.filter(d => d.label)
+                            .append('text')
+                            .text(d => d.label)
                             .attr('class', 'edgeLabel')
                 },
                 update => update,
@@ -112,7 +137,8 @@
                 [() => {
                     d3.selectAll('.edge').attr('d', edgeShape)
                     d3.selectAll('.edgeLabel').attr('transform', d => `translate(${(d.source.x + d.target.x)/2}, ${(d.source.y + d.target.y)/2})`)
-                }]
+                }],
+                graph
             )
 
             let build_arrowhead = viz.register_def('marker',

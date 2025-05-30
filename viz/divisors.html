@@ -52,12 +52,29 @@
             let viz = new Graph_Visualization(diagram);
 
             // Graph element ID accessor:
-            let getNodeLabel = (d) => d.label;
+            let getNodeLabel = (d) => d.id;
 
             // Forces:
-            let node_repulsion = d3.forceManyBody().strength(-300);
+            let node_repulsion = d3.forceManyBody().strength(-400);
             let centering = d3.forceCenter(diagram.clientWidth / 2, diagram.clientHeight / 2);
-            let edge_attraction = d3.forceLink().strength(0.1).id(d => d.id);
+            let edge_attraction = d3.forceLink().strength(0.05).id(d => d.id);
+            let edge_vert = (() => {
+                let link_array = [];
+                let torque_fn = (alpha) => {
+                    link_array.forEach(edge => {
+                        dx = edge.target.x - edge.source.x;
+                        dy = edge.target.y - edge.source.y;
+                        theta = Math.atan2(dx, dy);
+                        edge.target.vx += Math.sin(theta) * alpha * dy * 0.05;
+                        edge.target.vy += -Math.sin(theta) * alpha * dx * 0.05;
+                    })
+                }
+                torque_fn.links = (array) => {
+                    if (array) {link_array = array}
+                    return(link_array);
+                }
+                return(torque_fn)
+            })()
 
             // Custom Edge shape:
             const arrowheadToNodeOffset = 30;
@@ -108,7 +125,7 @@
                 },
                 update => update,
                 exit => exit.remove(),
-                {link: edge_attraction},
+                {link: edge_attraction, torque: edge_vert},
                 [() => {
                     d3.selectAll('.edge').attr('d', edgeShape)
                     d3.selectAll('.edgeLabel').attr('transform', d => `translate(${(d.source.x + d.target.x)/2}, ${(d.source.y + d.target.y)/2})`)
@@ -128,7 +145,33 @@
                 exit => exit
             );
 
-            let data = Data['Aspirin Induced Asthma'];
+            divPoset = (numbers) => {
+                    nodes = []
+                    edges = []
+                    numbers.forEach(number => {
+                        nodes.push({ id: number })
+                    })
+
+                    const cartesianProd = (...a) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())))
+                    const isPrime = (m) => {
+                        for (let i = 2; i <= Math.sqrt(m); i++) {
+                            if (m % i == 0) return (false);
+                        }
+                        return (true)
+                    }
+
+                    cartesianProd(numbers, numbers).forEach(pair => {
+                        let p = pair[0], q = pair[1];
+                        if ((q % p == 0) && (isPrime(q / p)) && (p != q)) {
+                            edges.push({ source: p, target: q, id: `${p},${q}` })
+                        }
+                    })
+
+                    return ({ nodes: nodes, edges: edges })
+                }
+
+            
+            let data = divPoset([1,2,3,4,5,6,7,8,9,10,11,12]);
             build_arrowhead([{id: 'arrowhead-def'}], x => {return(x.id)});
             build_nodes(data.nodes, node => node.id);
             build_edges(data.edges, (e => e.id));

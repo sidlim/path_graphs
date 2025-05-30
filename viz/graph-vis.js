@@ -43,14 +43,14 @@ class Graph_Visualization {
         return(updater)
     }
 
-    register_relation(selector, enter, update, exit, forces = {}, tick_animations = []) {
+    register_relation(selector, enter, update, exit, forces = {}, tick_animations = [], parent = this.d3_root) {
         
         this.register_forces(forces)
         this.register_animations(tick_animations)
 
         let updater = (data, key) => {
             let data_copy = structuredClone(data)
-            this.d3_root.selectAll(selector)
+            parent.selectAll(selector)
                 .data(data_copy, key).join(enter, update, exit)
             
             for (const force of Object.values(forces)) {
@@ -61,14 +61,14 @@ class Graph_Visualization {
         return(updater)
     }
 
-    register_node(selector, enter, update, exit, forces = {}, tick_animations = []) {
+    register_node(selector, enter, update, exit, forces = {}, tick_animations = [], parent = this.d3_root) {
         
         this.register_forces(forces)
         this.register_animations(tick_animations)
         
         let updater = (data, key) => {
             let data_copy = structuredClone(data)
-            this.d3_root.selectAll(selector)
+            parent.selectAll(selector)
                 .data(data_copy, key).join(enter, update, exit)
             this.simulation.nodes(data_copy);
         }

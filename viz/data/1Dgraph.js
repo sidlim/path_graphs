@@ -1,4 +1,4 @@
-const Data = {
+let Data = {
     'Aspirin Induced Asthma': {
         nodes: [
             { id: 1, label: 'Membrane Phospholipid' },
