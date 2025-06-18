@@ -115,6 +115,7 @@ class Graph_Node extends Graph_Component {
         })
     }
 }
+// Can be done by a mixin - "SimulationMixin" or "NodesMixin"
 
 class Graph_Relation extends Graph_Component {
     constructor(componentId, selector, enter, update, exit, animations = [], requiredForces = [], requiredDefs = []) {
@@ -138,3 +139,14 @@ class Graph_Relation extends Graph_Component {
         })
     }
 }
+// Mixin: "LinkForceMixin"
+
+// Mixins for composition? of Graph Components? so that way we get a dependency graph for free?
+// Mixins for registration?
+// Global data consistency?
+
+// Proposed architecture:
+    // Class for graph visualizations
+    // Classes for graph components
+    // register a graph component class with a graph visualization instance -> instantiate 
+    // the component class and store in the visualization instance

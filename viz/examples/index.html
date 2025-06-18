@@ -3,9 +3,9 @@
     <head>
         <title>Causal Path: Example - Inflammatory Pathways in Bronchoconstriction</title>
         <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-        <script src="graph-vis.js"></script>
-        <script src="data/1Dgraph.js"></script>
-        <script src="umls-query.js"></script>
+        <script src="../graph-vis.js"></script>
+        <script src="../data/1Dgraph.js"></script>
+        <script src="../umls-query.js"></script>
         <style type="text/css">
             text {
                 text-anchor: middle;
@@ -26,7 +26,7 @@
             }
 
             svg {
-                height: 100vh;
+                height: 100dvh;
                 width: 100%;
             }
 
@@ -46,7 +46,6 @@
         </style>
     </head>
     <body>
-        <input id="nodeNameInput" type="text" placeholder="Node name"/>
         <svg id="diagram">
         </svg>
         <script type="text/javascript">
@@ -56,10 +55,10 @@
 
             // Create Node & Edge components:
             let node = new Graph_Node('node', 'text', enter => {
-                enter.append('text').text(e => e.id).attr('class', 'node')
+                enter.append('text').text(e => e.label).attr('class', 'node')
                 .call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended))
                 }, 
-                update => update.text(e => e.id), 
+                update => update.text(e => e.label), 
                 exit => exit.remove(),
                 [root => {root.selectAll('.node').attr('transform', d => `translate(${d.x}, ${d.y})`)}]
             )
@@ -105,65 +104,30 @@
                 theta = Math.atan2(d.target.y - d.source.y, d.target.x - d.source.x)
                 dx = arrowheadToNodeOffset * Math.cos(theta);
                 dy = arrowheadToNodeOffset * Math.sin(theta);
-                return (`M${d.source.x + dx},${d.source.y + dy} L${d.target.x - dx},${d.target.y - dy}`)
+                return(`M${d.source.x + dx},${d.source.y + dy} L${d.target.x - dx},${d.target.y - dy}`)
             };
 
             let dragstarted = (event) => {              // Raise simulation temp so nodes move on drag
                 if (!event.active) viz.simulation.alphaTarget(0.3).restart();
-                if (event.sourceEvent.shiftKey) {
-                    event.subject._isEdgeSource = true;
-                } else {
-                    event.subject.fx = event.subject.x;
-                    event.subject.fy = event.subject.y;
-                }
+                event.subject.fx = event.subject.x;
+                event.subject.fy = event.subject.y;
             }
 
             let dragged = (event) => {                     // Apply a force to nodes on drag
-                if (!event.sourceEvent.shiftKey) {
-                    event.subject.fx = event.x;
-                    event.subject.fy = event.y;
-                }
+                event.subject.fx = event.x;
+                event.subject.fy = event.y;
             }
 
             let dragended = (event) => {
                 if (!event.active) viz.simulation.alphaTarget(0);
-                if (event.subject._isEdgeSource) {
-                    const source = event.subject;
-                    const target = getClosestNode(event);
-
-                    if (target && target.id !== source.id) {
-                        data.relations.push({ source: source.id, target: target.id });
-                        viz.getComponent('edge').updater(data.relations);
-                    }
-
-                    delete event.subject._isEdgeSource;
-                } else {
-                    event.subject.fx = null;
-                    event.subject.fy = null;
-                }
+                event.subject.fx = null;
+                event.subject.fy = null;
             }
 
-            function getClosestNode(event) {
-                const [mouseX, mouseY] = [event.x, event.y];
-                const r = 30; // max distance to consider a hit
-                return data.nodes.find(n => {
-                    const dx = n.x - mouseX;
-                    const dy = n.y - mouseY;
-                    return dx * dx + dy * dy < r * r;
-                });
-            }
-            let data = {nodes: [], relations: []};
-
-            // builder logic:
-            let input = document.querySelector('#nodeNameInput');
-            input.addEventListener('keypress', (e) => {
-                if (e.key == 'Enter') {
-                    let node_text = input.value;
-                    data.nodes.push({id: node_text})
-                    viz.getComponent('node').updater(data.nodes);
-                    input.value = '';
-                }
-            })
+            // Build nodes and edges:
+            let data = Data['Aspirin Induced Asthma'];
+            viz.getComponent('node').updater(data.nodes, x => x.id);
+            viz.getComponent('edge').updater(data.edges, x => x.id);
         </script>
     </body>
 </html>

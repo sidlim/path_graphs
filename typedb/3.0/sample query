@@ -1,0 +1,30 @@
+#define
+#  relation group_friendship,
+#    relates leader,
+#    relates member @card(0..);
+#  entity user,
+#    owns username,
+#    plays group_friendship:leader,
+#    plays group_friendship:member;
+#  attribute username, value string;
+
+#insert
+#  $leader isa user, has username "alex";
+#  $member1 isa user, has username "bob";
+#  $member2 isa user, has username "charlie";
+#  $member3 isa user, has username "dana";
+#  $friendship isa group_friendship;
+#  $friendship links (leader: $leader, member: $member1, member: $member2, member: $member3);
+
+match
+  $leader isa user, has username "alex";
+  $friendship isa group_friendship;
+  $friendship links (leader: $leader, member: $member);
+  $member has username $name; 
+#fetch {
+#  "member_name": $name
+#};
+
+#match $x isa user; reduce $count = count; fetch { "count": $count };
+
+

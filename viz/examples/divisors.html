@@ -3,9 +3,9 @@
     <head>
         <title>Causal Path: Example - Inflammatory Pathways in Bronchoconstriction</title>
         <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-        <script src="graph-vis.js"></script>
-        <script src="data/1Dgraph.js"></script>
-        <script src="umls-query.js"></script>
+        <script src="../graph-vis.js"></script>
+        <script src="../data/1Dgraph.js"></script>
+        <script src="../umls-query.js"></script>
         <style type="text/css">
             text {
                 text-anchor: middle;
@@ -46,8 +46,7 @@
         </style>
     </head>
     <body>
-        <svg id="diagram">
-        </svg>
+        <svg id="diagram"></svg>
         <script type="text/javascript">
             let diagram = document.querySelector('#diagram');
             let viz = new Graph_Visualization(diagram);
@@ -55,10 +54,10 @@
 
             // Create Node & Edge components:
             let node = new Graph_Node('node', 'text', enter => {
-                enter.append('text').text(e => e.label).attr('class', 'node')
+                enter.append('text').text(e => e.id).attr('class', 'node')
                 .call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended))
                 }, 
-                update => update.text(e => e.label), 
+                update => update.text(e => e.id), 
                 exit => exit.remove(),
                 [root => {root.selectAll('.node').attr('transform', d => `translate(${d.x}, ${d.y})`)}]
             )
@@ -125,7 +124,33 @@
             }
 
             // Build nodes and edges:
-            let data = Data['Aspirin Induced Asthma'];
+            divPoset = (numbers) => {
+                    nodes = []
+                    edges = []
+                    numbers.forEach(number => {
+                        nodes.push({ id: number })
+                    })
+
+                    const cartesianProd = (...a) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())))
+                    const isPrime = (m) => {
+                        for (let i = 2; i <= Math.sqrt(m); i++) {
+                            if (m % i == 0) return (false);
+                        }
+                        return (true)
+                    }
+
+                    cartesianProd(numbers, numbers).forEach(pair => {
+                        let p = pair[0], q = pair[1];
+                        if ((q % p == 0) && (isPrime(q / p)) && (p != q)) {
+                            edges.push({ source: p, target: q, id: `${p},${q}` })
+                        }
+                    })
+
+                    return ({ nodes: nodes, edges: edges })
+                }
+
+            let data = divPoset([1,2,3,4,5,6,7,8,9,10,11,12]);
+
             viz.getComponent('node').updater(data.nodes, x => x.id);
             viz.getComponent('edge').updater(data.edges, x => x.id);
         </script>

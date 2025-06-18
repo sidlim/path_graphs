@@ -101,3 +101,30 @@ async function search_desc(string) {
         return [];
     }
 }
+
+// Setup our dataloader:
+/*
+window.addEventListener('load', () => {
+    let container = document.querySelectorAll('.dataloader')[0]
+    let searchInput = container.querySelector('input');
+    let resultContainer = container.querySelector('.results');
+
+    let showResult = (title, cui, description) => {
+        let titleElement = document.createElement('dt');
+        let descElement = document.createElement('dd');
+        resultContainer.appendChild(titleElement);
+        resultContainer.appendChild(descElement);
+        titleElement.innerText = `${title}: ${cui}`;
+        descElement.innerText = description;
+    }
+
+    searchInput.addEventListener("keyup", (event) => {
+        if (event.key == 'Enter') {
+            search_desc(searchInput.value).then(results => {
+                results.forEach(result => {
+                    showResult(result.name, result.cui, result.def)
+                })
+            })
+        }
+    })
+})*/

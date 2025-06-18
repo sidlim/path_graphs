@@ -1,0 +1,48 @@
+Last login: Sun Jun  8 18:12:58 on console
+sid@Siddharths-MacBook-Air ~ % curl .../v1/signin --request POST --json '{"username": "admin", "password": "..."}'    
+{"token":"..."}%
+sid@Siddharths-MacBook-Air ~ % curl .../v1/version --request GET                                                        
+{"distribution":"TypeDB Cluster","version":"3.3.0"}%                            sid@Siddharths-MacBook-Air ~ % curl .../v1/databases --request GET
+{"code":"AUT2","message":"[AUT2] Missing token (expected as the authorization bearer).\n[HSR9] Authentication error."}%                                         sid@Siddharths-MacBook-Air ~ % curl .../v1/databases --request GET --header 'Authorization: Bearer ...'
+{"databases":[{"name":"default"}]}%                                             sid@Siddharths-MacBook-Air ~ % curl .../v1/databases/default/schema --request GET --header 'Authorization: Bearer ...'
+define
+
+attribute username,
+ value string;
+attribute start-date,
+ value datetime;
+attribute status,
+ value string;
+attribute student-count,
+ value integer;
+entity user,
+  owns status @card(0..),
+  owns username @key,
+  plays enrolment:student,
+  plays friendship:friend;
+entity organization,
+  owns status,
+  owns username,
+  plays friendship:friend;
+entity company,
+  sub organization;
+entity university,
+  sub organization,
+  owns student-count,
+  plays enrolment:university;
+relation friendship,
+  relates friend @card(2..2),
+  owns start-date @card(0..1);
+relation enrolment,
+  relates student,
+  relates university; %                                                         sid@Siddharths-MacBook-Air ~ % curl --header 'Authorization: Bearer ...' --url .../v1/query --request POST --JSON '{"databaseName": "default", "transactionType": "read", "query": "match $x isa friendship"}'
+curl: option --JSON: is unknown
+curl: try 'curl --help' or 'curl --manual' for more information
+sid@Siddharths-MacBook-Air ~ % curl --header 'Authorization: Bearer ...' --url .../v1/query --request POST --json '{"databaseName": "default", "transactionType": "read", "query": "match $x isa friendship"}'
+{"code":"TQL0","message":"[TQL0] [TQL03] TypeQL Error: There is a syntax error\nparsing error: expected relation, comparator, expression, expression_struct, or value_literal\nNear 1:23:\n--> match $x isa friendship\n                           ^\nCaused: Error in usage of TypeQL.\n[TSV7] Query parsing failed.\n[HSR16] Transaction error."}%                                                            sid@Siddharths-MacBook-Air ~ % curl --header 'Authorization: Bearer ...' --url .../v1/query --request POST --json '{"databaseName": "default", "transactionType": "read", "query": "match $x isa friendship;"}'
+{"queryType":"read","answerType":"conceptRows","answers":[{"data":{"x":{"kind":"relation","iid":"0x1f00000000000000000000","type":{"kind":"relationType","label":"friendship"}}},"involvedBlocks":[0]}],"query":{"blocks":[{"constraints":[{"textSpan":{"begin":9,"end":23},"tag":"isa","instance":{"tag":"variable","id":"0"},"type":{"tag":"label","type":{"kind":"relationType","label":"friendship"}}}]}],"variables":{"0":{"name":"x"}},"outputs":["0"]},"warning":null}%                  sid@Siddharths-MacBook-Air ~ % 
+
+
+
+
+At this point ^ I stopped because I realized the studio cloud output shows the output of queries as JSON as long as you switch to "raw" instead of "console"
